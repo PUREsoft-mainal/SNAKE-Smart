@@ -1,0 +1,205 @@
+* {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #111;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    width: 100vw;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* الشريط العلوي */
+.top-bar {
+    background: #182216;
+    color: #fff;
+    padding: 6px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    border-bottom: 2px solid #000;
+}
+.top-bar button {
+    background: #2c3e50;
+    color: white;
+    border: 1px solid #4a6583;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* شريط السرعة */
+.speed-bar {
+    background: rgba(0, 0, 0, 0.45);
+    color: #f1c40f;
+    padding: 4px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+.speed-controls button {
+    background: #27ae60;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 24px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* منطقة اللعب وخلفيات المتجر */
+#game-container {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    border-bottom: 4px solid #000;
+}
+.bg-forest { background: radial-gradient(circle, #3a5a32 0%, #1e3319 100%); }
+.bg-desert { background: radial-gradient(circle, #d4ac0d 0%, #7e5109 100%); }
+.bg-night  { background: radial-gradient(circle, #2c3e50 0%, #090d16 100%); }
+
+canvas { display: block; width: 100%; height: 100%; }
+
+/* لوحة التحكم وثيمات المتجر */
+.controls-panel {
+    height: 185px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+}
+.pad-classic { background-color: #141c13; }
+.pad-neon    { background-color: #0b0c10; border-top: 2px solid #66fcf1; }
+.pad-gold    { background-color: #2c1e05; border-top: 2px solid #f1c40f; }
+
+.side-btn {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: none;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+#pause-btn { background: linear-gradient(145deg, #f39c12, #d35400); }
+#restart-btn { background: linear-gradient(145deg, #e74c3c, #c0392b); }
+
+.d-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 55px);
+    grid-template-rows: repeat(3, 50px);
+    gap: 4px;
+    direction: ltr;
+}
+.dir-btn {
+    background: linear-gradient(145deg, #2ecc71, #27ae60);
+    border: 2px solid #1e8449;
+    border-radius: 12px;
+    color: white;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pad-neon .dir-btn { background: #1f2833; border-color: #66fcf1; color: #66fcf1; }
+.pad-gold .dir-btn { background: linear-gradient(145deg, #f1c40f, #b7950b); border-color: #fff; color: #000; }
+
+.dir-btn:active, .side-btn:active { transform: scale(0.92); }
+.up { grid-column: 2; grid-row: 1; }
+.left { grid-column: 1; grid-row: 2; }
+.right { grid-column: 3; grid-row: 2; }
+.down { grid-column: 2; grid-row: 3; }
+
+/* شاشة التوقف والنهاية */
+#overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    padding: 15px;
+    z-index: 20;
+}
+#overlay span { font-size: 16px; color: #f1c40f; margin-top: 8px; }
+#next-lvl-btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #2ecc71;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* النوافذ المنبثقة (الأنظمة والمتجر) */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 15px;
+}
+.modal-box {
+    background: #1e272e;
+    color: white;
+    width: 100%;
+    max-width: 400px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid #485460;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #485460;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+.shop-item, .level-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2f3640;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+.modal-box button {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+

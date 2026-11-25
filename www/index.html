@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة الثعبان المطورة</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="top-bar">
+        <div>النقاط: <b id="score">0</b> | الخزنة: <b id="db-points">0</b></div>
+        <div>العملات: <b id="db-coins">0</b> 🪙</div>
+        <div>
+            <button onclick="openModal('modes-modal')">الأنظمة 🎮</button>
+            <button onclick="openModal('shop-modal')">المتجر 🛒</button>
+        </div>
+    </div>
+
+    <div class="speed-bar">
+        <span id="level-indicator">وضع الصندوق 📦</span>
+        <div class="speed-controls">
+            السرعة:
+            <button onclick="changeSpeed(-1)">-</button>
+            <span id="speed-val" style="margin: 0 6px;">1</span>
+            <button onclick="changeSpeed(1)">+</button>
+        </div>
+    </div>
+
+    <div id="game-container" class="bg-forest">
+        <canvas id="gameCanvas"></canvas>
+        <div id="overlay">
+            <div id="overlay-text">متوقف</div>
+            <span id="overlay-sub"></span>
+            <button id="next-lvl-btn" style="display:none;" onclick="nextLevel()">المرحلة التالية ⬅️</button>
+        </div>
+    </div>
+
+    <div id="controls-panel" class="controls-panel pad-classic">
+        <button id="pause-btn" class="side-btn" onclick="togglePause()">
+            <span style="font-size:18px;">⏸</span>
+            <span>توقف</span>
+        </button>
+
+        <div class="d-pad">
+            <button class="dir-btn up" onpointerdown="setDirection(0, -1)">▲</button>
+            <button class="dir-btn left" onpointerdown="setDirection(-1, 0)">◀</button>
+            <button class="dir-btn right" onpointerdown="setDirection(1, 0)">▶</button>
+            <button class="dir-btn down" onpointerdown="setDirection(0, 1)">▼</button>
+        </div>
+
+        <button id="restart-btn" class="side-btn" onclick="resetGame()">
+            <span style="font-size:18px;">🔄</span>
+            <span>إعادة</span>
+        </button>
+    </div>
+
+    <!-- نافذة أنظمة اللعب والمتاهات -->
+    <div id="modes-modal" class="modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <b>اختر نظام اللعب</b>
+                <button style="background:#e74c3c;" onclick="closeModal('modes-modal')">✕</button>
+            </div>
+            <div class="shop-item">
+                <span>📦 نظام الصندوق (الموت عند الجدار)</span>
+                <button style="background:#27ae60;" onclick="setMode('box', false)">لعب</button>
+            </div>
+            <div class="shop-item">
+                <span>🌍 النظام الحر (العبور من الحواف)</span>
+                <button style="background:#2980b9;" onclick="setMode('free', false)">لعب</button>
+            </div>
+            <h4 style="margin:10px 0 6px; color:#f1c40f;">🏰 مراحل المتاهات (مسابقة):</h4>
+            <div id="maze-levels-list"></div>
+        </div>
+    </div>
+
+    <!-- نافذة المتجر وتحويل العملات -->
+    <div id="shop-modal" class="modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <b>المتجر وتحويل العملات</b>
+                <button style="background:#e74c3c;" onclick="closeModal('shop-modal')">✕</button>
+            </div>
+
+            <div class="shop-item" style="background:#1e3799;">
+                <span>تحويل كل 5 نقاط ⬅️ 1 عملة 🪙</span>
+                <button style="background:#f1c40f; color:#000;" onclick="convertCoins()">تحويل الآن</button>
+            </div>
+
+            <h4 style="margin:8px 0 4px; color:#2ecc71;">🐍 أشكال الثعبان:</h4>
+            <div class="shop-item">
+                <span>ثعبان دائري واقعي</span>
+                <button data-shop-item="realistic" data-cat="selectedSnake" data-price="0" onclick="buyItem('selectedSnake','realistic',0)"></button>
+            </div>
+            <div class="shop-item">
+                <span>ثعبان خطي برأس</span>
+                <button data-shop-item="line" data-cat="selectedSnake" data-price="10" onclick="buyItem('selectedSnake','line',10)"></button>
+            </div>
+            <div class="shop-item">
+                <span>ثعبان يتلوّى كالحقيقي</span>
+                <button data-shop-item="slither" data-cat="selectedSnake" data-price="20" onclick="buyItem('selectedSnake','slither',20)"></button>
+            </div>
+
+            <h4 style="margin:8px 0 4px; color:#2ecc71;">🏞️ خلفيات اللعبة:</h4>
+            <div class="shop-item">
+                <span>غابة خضراء</span>
+                <button data-shop-item="forest" data-cat="selectedBg" data-price="0" onclick="buyItem('selectedBg','forest',0)"></button>
+            </div>
+            <div class="shop-item">
+                <span>صحراء ذهبية</span>
+                <button data-shop-item="desert" data-cat="selectedBg" data-price="15" onclick="buyItem('selectedBg','desert',15)"></button>
+            </div>
+            <div class="shop-item">
+                <span>الوضع الليلي</span>
+                <button data-shop-item="night" data-cat="selectedBg" data-price="25" onclick="buyItem('selectedBg','night',25)"></button>
+            </div>
+
+            <h4 style="margin:8px 0 4px; color:#2ecc71;">🎮 أشكال لوحة التحكم:</h4>
+            <div class="shop-item">
+                <span>اللوحة الكلاسيكية</span>
+                <button data-shop-item="classic" data-cat="selectedPad" data-price="0" onclick="buyItem('selectedPad','classic',0)"></button>
+            </div>
+            <div class="shop-item">
+                <span>لوحة النيون المضيئة</span>
+                <button data-shop-item="neon" data-cat="selectedPad" data-price="15" onclick="buyItem('selectedPad','neon',15)"></button>
+            </div>
+            <div class="shop-item">
+                <span>اللوحة الملكية الذهبية</span>
+                <button data-shop-item="gold" data-cat="selectedPad" data-price="30" onclick="buyItem('selectedPad','gold',30)"></button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="game.js"></script>
+</body>
+</html>
+
