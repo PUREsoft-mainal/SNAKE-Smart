@@ -1,0 +1,84 @@
+name: Build SNAKE Smart (Windows, Linux, Android Signed APK & AAB)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-desktop:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Windows Executable
+        if: matrix.os == 'windows-latest'
+        run: npm run build:win
+
+      - name: Build Linux AppImage
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run build:linux
+
+      - name: Upload Desktop Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SNAKE-Smart-${{ matrix.os }}
+          path: |
+            dist/*.exe
+            dist/*.AppImage
+
+  build-android:
+    name: Build Signed Android APK & AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install & Initialize Capacitor Android
+        run: |
+          npm install
+          npx cap init "SNAKE Smart" "com.snakesmart.game" --web-dir www
+          npx cap add android
+          npx cap sync android
+
+      - name: Generate Release Keystore & Build Signed APK + AAB
+        run: |
+          keytool -genkey -v -keystore android/app/release.keystore -alias snakesmart -keyalg RSA -keysize 2048 -validity 10000 -storepass snake1234 -keypass snake1234 -dname "CN=SNAKE Smart, OU=Games, O=SnakeSmart, L=Cairo, S=Egypt, C=EG"
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/android/app/release.keystore -Pandroid.injected.signing.store.password=snake1234 -Pandroid.injected.signing.key.alias=snakesmart -Pandroid.injected.signing.key.password=snake1234
+          ./gradlew bundleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/android/app/release.keystore -Pandroid.injected.signing.store.password=snake1234 -Pandroid.injected.signing.key.alias=snakesmart -Pandroid.injected.signing.key.password=snake1234
+
+      - name: Upload Signed Android APK & AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: SNAKE-Smart-Android-Release
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
